@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -12,19 +13,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <nav className="sticky top-0 z-50 bg-slate-900/90 backdrop-blur border-b border-slate-700/60 px-4 py-3">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
-            <a href="/" className="flex items-center gap-3">
+            <Link href="/" className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center text-slate-900 font-bold text-sm">
                 A
               </div>
               <span className="font-semibold text-white text-lg">Asian Economies</span>
               <span className="hidden sm:inline text-slate-400 text-sm">| GDP Growth Dashboard</span>
-            </a>
+            </Link>
             <div className="flex items-center gap-4 text-sm text-slate-400">
-              <a href="/" className="hover:text-white transition-colors">Countries</a>
-              <a href="/compare" className="hover:text-white transition-colors">Compare</a>
-              <a href="/inr-compare" className="hover:text-amber-400 transition-colors flex items-center gap-1">
+              <Link href="/" className="hover:text-white transition-colors">Countries</Link>
+              <Link href="/compare" className="hover:text-white transition-colors">Compare</Link>
+              <Link href="/inr-compare" className="hover:text-amber-400 transition-colors flex items-center gap-1">
                 <span>🇮🇳</span> INR vs All
-              </a>
+              </Link>
               <span className="text-slate-600">|</span>
               <span className="text-amber-400 text-xs font-medium">2020 – May 2026</span>
             </div>
