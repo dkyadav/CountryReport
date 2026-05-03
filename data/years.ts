@@ -1,4 +1,4 @@
-export const YEARS = [2020, 2021, 2022, 2023, 2024, 2025, 2026] as const;
+export const YEARS = [2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026] as const;
 export const FIRST_YEAR = YEARS[0];
 export const LAST_YEAR = YEARS[YEARS.length - 1];
 export const RANGE_LABEL = `${FIRST_YEAR}–May ${LAST_YEAR}`;
