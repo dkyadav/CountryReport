@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { countries } from '@/data/countries';
+import { getAllCountries } from '@/lib/services/countryService';
 import { RANGE_LABEL, latest, pctChange, FIRST_YEAR, LAST_YEAR } from '@/data/years';
 
 function formatGDP(billion: number) {
@@ -16,8 +16,8 @@ function TrendBadge({ pct, invert = false }: { pct: number; invert?: boolean }) 
   );
 }
 
-export default function Home() {
-  const sortedCountries = [...countries].sort((a, b) => a.gdpRank - b.gdpRank);
+export default async function Home() {
+  const sortedCountries = await getAllCountries(); // already sorted by gdpRank
   const totalGDP = sortedCountries.reduce((sum, c) => sum + c.gdpLatest, 0);
 
   return (
