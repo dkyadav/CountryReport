@@ -1,19 +1,18 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { countries, getCountryById } from '@/data/countries';
+import { getAllCountries, getCountryById } from '@/lib/services/countryService';
 import { YEARS, RANGE_LABEL, latest, earliest, pctChange, absChange, fuelPctChange } from '@/data/years';
 import CountryCharts from '@/components/CountryCharts';
 
-export async function generateStaticParams() {
-  return countries.map((c) => ({ id: c.id }));
-}
-
 export default async function CountryPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const country = getCountryById(id);
+  const [country, allCountries] = await Promise.all([
+    getCountryById(id),
+    getAllCountries(),
+  ]);
   if (!country) notFound();
 
-  const sortedCountries = [...countries].sort((a, b) => a.gdpRank - b.gdpRank);
+  const sortedCountries = allCountries; // already sorted by gdpRank
   const currentIndex = sortedCountries.findIndex((c) => c.id === country.id);
   const prevCountry = currentIndex > 0 ? sortedCountries[currentIndex - 1] : null;
   const nextCountry = currentIndex < sortedCountries.length - 1 ? sortedCountries[currentIndex + 1] : null;

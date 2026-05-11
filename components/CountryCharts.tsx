@@ -1,15 +1,28 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { CountryData } from '@/types';
 import { RANGE_LABEL } from '@/data/years';
-import { toMonthly, toYearly, toMonthlyFuel, toYearlyFuel, VARIANCE } from '@/data/monthly';
+import { toYearly, toYearlyFuel, MonthData, MonthFuel } from '@/data/monthly';
 import CurrencyChart from '@/components/charts/CurrencyChart';
 import FuelChart from '@/components/charts/FuelChart';
 import TradeChart from '@/components/charts/TradeChart';
 import DebtChart from '@/components/charts/DebtChart';
 import PerCapitaChart from '@/components/charts/PerCapitaChart';
 import RankingChart from '@/components/charts/RankingChart';
+
+interface MonthlyApiResponse {
+  currencyVsUSD: MonthData[];
+  fuelPrices: MonthFuel[];
+  externalDebt: MonthData[];
+  perCapitaIncome: MonthData[];
+  imports: MonthData[];
+  exports: MonthData[];
+  asianRank: MonthData[];
+  inflationRate: MonthData[];
+  unemploymentRate: MonthData[];
+  fdiInflow: MonthData[];
+}
 
 interface SectionProps {
   title: string;
@@ -35,35 +48,51 @@ function Section({ title, subtitle, icon, children }: SectionProps) {
 
 export default function CountryCharts({ country }: { country: CountryData }) {
   const [granularity, setGranularity] = useState<'yearly' | 'monthly'>('yearly');
+  const [monthlyData, setMonthlyData] = useState<MonthlyApiResponse | null>(null);
+  const [loadingMonthly, setLoadingMonthly] = useState(false);
+  const [monthlyError, setMonthlyError] = useState<string | null>(null);
 
-  const data = useMemo(() => {
-    if (granularity === 'yearly') {
-      return {
-        currency: toYearly(country.currencyVsUSD),
-        fuel: toYearlyFuel(country.fuelPrices),
-        debt: toYearly(country.externalDebt),
-        perCapita: toYearly(country.perCapitaIncome),
-        imports: toYearly(country.imports),
-        exports: toYearly(country.exports),
-        rank: toYearly(country.asianRank),
-        inflation: toYearly(country.inflationRate),
-        unemployment: toYearly(country.unemploymentRate),
-        fdi: toYearly(country.fdiInflow),
-      };
-    }
-    return {
-      currency: toMonthly(country.currencyVsUSD, VARIANCE.currency),
-      fuel: toMonthlyFuel(country.fuelPrices, VARIANCE.fuel),
-      debt: toMonthly(country.externalDebt, VARIANCE.externalDebt),
-      perCapita: toMonthly(country.perCapitaIncome, VARIANCE.perCapita),
-      imports: toMonthly(country.imports, VARIANCE.imports),
-      exports: toMonthly(country.exports, VARIANCE.exports),
-      rank: toMonthly(country.asianRank, VARIANCE.asianRank),
-      inflation: toMonthly(country.inflationRate, VARIANCE.inflation),
-      unemployment: toMonthly(country.unemploymentRate, VARIANCE.unemployment),
-      fdi: toMonthly(country.fdiInflow, VARIANCE.fdi),
-    };
-  }, [country, granularity]);
+  useEffect(() => {
+    if (granularity !== 'monthly' || monthlyData) return;
+    setLoadingMonthly(true);
+    setMonthlyError(null);
+    fetch(`/api/countries/${country.id}/monthly`)
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json() as Promise<MonthlyApiResponse>;
+      })
+      .then((data) => setMonthlyData(data))
+      .catch((err) => setMonthlyError(err.message))
+      .finally(() => setLoadingMonthly(false));
+  }, [granularity, country.id, monthlyData]);
+
+  const yearlyData = {
+    currency: toYearly(country.currencyVsUSD),
+    fuel: toYearlyFuel(country.fuelPrices),
+    debt: toYearly(country.externalDebt),
+    perCapita: toYearly(country.perCapitaIncome),
+    imports: toYearly(country.imports),
+    exports: toYearly(country.exports),
+    rank: toYearly(country.asianRank),
+    inflation: toYearly(country.inflationRate),
+    unemployment: toYearly(country.unemploymentRate),
+    fdi: toYearly(country.fdiInflow),
+  };
+
+  const data = granularity === 'monthly' && monthlyData
+    ? {
+        currency: monthlyData.currencyVsUSD,
+        fuel: monthlyData.fuelPrices,
+        debt: monthlyData.externalDebt,
+        perCapita: monthlyData.perCapitaIncome,
+        imports: monthlyData.imports,
+        exports: monthlyData.exports,
+        rank: monthlyData.asianRank,
+        inflation: monthlyData.inflationRate,
+        unemployment: monthlyData.unemploymentRate,
+        fdi: monthlyData.fdiInflow,
+      }
+    : yearlyData;
 
   return (
     <div>
@@ -74,7 +103,9 @@ export default function CountryCharts({ country }: { country: CountryData }) {
           <p className="text-slate-500 text-sm">
             {granularity === 'yearly'
               ? `7 annual data points · ${RANGE_LABEL}`
-              : `77 monthly data points · Jan 2020 – May 2026`}
+              : loadingMonthly
+              ? 'Loading monthly data…'
+              : `77 monthly data points · Jan 2010 – May 2026`}
           </p>
         </div>
         <div className="inline-flex items-center bg-slate-800 border border-slate-700 rounded-xl p-1">
@@ -92,6 +123,18 @@ export default function CountryCharts({ country }: { country: CountryData }) {
           ))}
         </div>
       </div>
+
+      {monthlyError && (
+        <div className="mb-4 card p-4 text-sm text-rose-400 border-rose-500/30">
+          Failed to load monthly data: {monthlyError}
+        </div>
+      )}
+
+      {loadingMonthly && (
+        <div className="mb-4 card p-4 text-sm text-slate-400 text-center animate-pulse">
+          Loading monthly data from database…
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Section
@@ -154,7 +197,7 @@ export default function CountryCharts({ country }: { country: CountryData }) {
         </Section>
       </div>
 
-      {granularity === 'monthly' && (
+      {granularity === 'monthly' && !loadingMonthly && (
         <div className="mt-4 card p-4 text-sm text-slate-400 border-amber-500/20">
           <p>
             <span className="text-amber-400 font-semibold">ℹ️ Note on monthly data:</span> Annual figures from IMF/World Bank are
