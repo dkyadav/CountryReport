@@ -3,8 +3,19 @@
  * series for every indicator, and upserts both collections into MongoDB.
  *
  * Usage:
- *   MONGODB_URI=mongodb://... npx tsx scripts/seed.ts
+ *   npm run seed
  */
+
+// Load .env.local before anything else (tsx doesn't load it automatically)
+import { readFileSync } from 'fs';
+import { resolve } from 'path';
+try {
+  const lines = readFileSync(resolve(process.cwd(), '.env.local'), 'utf8').split('\n');
+  for (const line of lines) {
+    const match = line.match(/^\s*([^#][^=]*?)\s*=\s*(.*)\s*$/);
+    if (match) process.env[match[1]] = match[2];
+  }
+} catch { /* .env.local is optional */ }
 
 import mongoose from 'mongoose';
 import { countries } from '../data/countries';
