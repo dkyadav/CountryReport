@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { getAllCountries } from '@/lib/services/countryService';
 import CompareClient from './CompareClient';
 

@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import Link from 'next/link';
 import { getAllCountries } from '@/lib/services/countryService';
 import { RANGE_LABEL, latest, pctChange, FIRST_YEAR, LAST_YEAR } from '@/data/years';
